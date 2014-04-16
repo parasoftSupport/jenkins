@@ -33,7 +33,6 @@ import hudson.Launcher;
 import hudson.console.AnnotatedLargeText;
 import hudson.console.ExpandableDetailsNote;
 import hudson.console.ModelHyperlinkNote;
-import hudson.matrix.MatrixConfiguration;
 import hudson.model.Fingerprint.BuildPtr;
 import hudson.model.Fingerprint.RangeSet;
 import hudson.model.labels.LabelAtom;
@@ -712,15 +711,21 @@ public abstract class AbstractBuild<P extends AbstractProject<P,R>,R extends Abs
                             r = false;
                         }
                     } catch (Exception e) {
-                        String msg = "Publisher " + bs.getClass().getName() + " aborted due to exception";
-                        e.printStackTrace(listener.error(msg));
-                        LOGGER.log(WARNING, msg, e);
-                        if (phase) {
-                            setResult(Result.FAILURE);
-                        }
+                        reportError(bs, e, listener, phase);
+                    } catch (LinkageError e) {
+                        reportError(bs, e, listener, phase);
                     }
             }
             return r;
+        }
+
+        private void reportError(BuildStep bs, Throwable e, BuildListener listener, boolean phase) {
+            String msg = "Publisher " + bs.getClass().getName() + " aborted due to exception";
+            e.printStackTrace(listener.error(msg));
+            LOGGER.log(WARNING, msg, e);
+            if (phase) {
+                setResult(Result.FAILURE);
+            }
         }
 
         /**
@@ -950,7 +955,7 @@ public abstract class AbstractBuild<P extends AbstractProject<P,R>,R extends Abs
      * Provides additional variables and their values to {@link Builder}s.
      *
      * <p>
-     * This mechanism is used by {@link MatrixConfiguration} to pass
+     * This mechanism is used by {@code MatrixConfiguration} to pass
      * the configuration values to the current build. It is up to
      * {@link Builder}s to decide whether they want to recognize the values
      * or how to use them.

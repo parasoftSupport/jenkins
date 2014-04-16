@@ -56,6 +56,33 @@ Upcoming changes</a>
 <div id="trunk" style="display:none"><!--=TRUNK-BEGIN=-->
 <ul class=image>
   <li class=bug>
+    More efficient deletion of old builds (specified by date).
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22607">issue 22607</a>)
+  <li class=rfe>
+    The matrix project type was moved into its own plugin.
+  <li class=bug>
+    Linkage errors in notifiers could leak workspace leases.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21622">issue 21622</a>)
+  <li class=bug>
+    Better correction of the anomalous condition that several builds of a job specify the same number.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22631">issue 22631</a>)
+  <li class=bug>
+    Fix a bug which only showed the first detail part for radio buttons.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22583">issue 22583</a>)
+</ul>
+</div><!--=TRUNK-END=-->
+
+<!-- these changes are controlled by the release process. DO NOT MODIFY -->
+<div id="rc" style="display:none;"><!--=BEGIN=-->
+<h3><a name=v1.560>What's new in 1.560</a> <!--=DATE=--></h3>
+<ul class=image>
+  <li class='major rfe'>
+    Enforcing build trigger authentication at runtime by checking authentication associated with a build, rather than at configuration time.
+    For compatibility, enforcement is skipped by default; you must install the Authorize Project plugin or similar for this to take effect.
+    The “upstream pseudo trigger” was also removed in favor of a true trigger configured on the downstream project;
+    you may use either the post-build action or the trigger according to where you want this configuration stored, and who is authorized to change it.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-16956">issue 16956</a>)
+  <li class=bug>
     Fixed NPE from view new job name autocompletion since 1.553.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22142">issue 22142</a>)
   <li class='major bug'>
@@ -63,12 +90,29 @@ Upcoming changes</a>
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22560">issue 22560</a>)
   <li class=rfe>
     JNLP slaves are now handled through NIO-based remoting channels for better scalability.
+  <li class=rfe>
+    Integrated codemirror v2.38.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22582">issue 22582</a>)
+  <li class=bug>
+    Listing plugins shortly after installation throws ConcurrentModificationException.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22553">issue 22553</a>)
+  <li class=bug>
+    Fixed NoSuchMethodException when destroying processes using JDK1.8.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21341">issue 21341</a>)
+  <li class=rfe>
+    Avoid irrelevant job queing while node is offline.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21394">issue 21394</a>)
+  <li class=rfe>
+    Debian package now creates 'jenkins' group
+  <li class=rfe>
+    Suppress fingerprint link if fingerprint record isn't available.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21818">issue 21818</a>)
+  <li class=bug>
+    Job hangs if one of multiple triggered builds was aborted
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21932">issue 21932</a>)
 </ul>
-</div><!--=TRUNK-END=-->
-
-<!-- these changes are controlled by the release process. DO NOT MODIFY -->
-<div id="rc" style="display:none;"><!--=BEGIN=-->
-<h3><a name=v1.559>What's new in 1.559</a> <!--=DATE=--></h3>
+</div><!--=END=-->
+<h3><a name=v1.559>What's new in 1.559</a> (2014/04/13)</h3>
 <ul class=image>
   <li class=rfe>
     Slaves connected via Java Web Start now restart themselves when a connection to Jenkins is lost.
@@ -80,7 +124,6 @@ Upcoming changes</a>
     Faster rendering of views containing many items.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-18364">issue 18364</a>)
 </ul>
-</div><!--=END=-->
 <h3><a name=v1.558>What's new in 1.558</a> (2014/04/06)</h3>
 <ul class=image>
   <li class=rfe>
