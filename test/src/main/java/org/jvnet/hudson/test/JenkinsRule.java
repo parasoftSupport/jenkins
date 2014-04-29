@@ -159,6 +159,7 @@ import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
+
 import jenkins.model.Jenkins;
 import jenkins.model.JenkinsAdaptor;
 import jenkins.model.JenkinsLocationConfiguration;
@@ -176,7 +177,6 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -1539,18 +1539,43 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
         if(all.isEmpty())    return; // nope
         
         recipes.add(new JenkinsRecipe.Runner() {
+            private File home;
+            private final List<Jpl> jpls = new ArrayList<Jpl>();
+
             @Override
             public void decorateHome(JenkinsRule testCase, File home) throws Exception {
-            	
+                this.home = home;
+                this.jpls.clear();
+
             	for (URL hpl : all) {
+                    Jpl jpl = new Jpl(hpl);
+                    jpl.loadManifest();
+                    jpls.add(jpl);
+                }
 
-                    // make the plugin itself available
-                    Manifest m = new Manifest(hpl.openStream());
-                    String shortName = m.getMainAttributes().getValue("Short-Name");
-                    if(shortName==null)
-                        throw new Error(hpl+" doesn't have the Short-Name attribute");
-                    FileUtils.copyURLToFile(hpl, new File(home, "plugins/" + shortName + ".jpl"));
+                for (Jpl jpl : jpls) {
+                    jpl.resolveDependencies();
+                }
+            }
 
+            class Jpl {
+                final URL jpl;
+                Manifest m;
+                private String shortName;
+
+                Jpl(URL jpl) {
+                    this.jpl = jpl;
+                }
+
+                void loadManifest() throws IOException {
+                    m = new Manifest(jpl.openStream());
+                    shortName = m.getMainAttributes().getValue("Short-Name");
+                    if(shortName ==null)
+                        throw new Error(jpl +" doesn't have the Short-Name attribute");
+                    FileUtils.copyURLToFile(jpl, new File(home, "plugins/" + shortName + ".jpl"));
+                }
+
+                void resolveDependencies() throws Exception {
                     // make dependency plugins available
                     // TODO: probably better to read POM, but where to read from?
                     // TODO: this doesn't handle transitive dependencies
@@ -1558,12 +1583,9 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
                     // Tom: plugins are now searched on the classpath first. They should be available on
                     // the compile or test classpath. As a backup, we do a best-effort lookup in the Maven repository
                     // For transitive dependencies, we could evaluate Plugin-Dependencies transitively.
-
                     String dependencies = m.getMainAttributes().getValue("Plugin-Dependencies");
                     if(dependencies!=null) {
-                        MavenEmbedder embedder = MavenUtil
-                                .createEmbedder(new StreamTaskListener(System.out, Charset.defaultCharset()),
-                                        (File) null, null);
+                        DEPENDENCY:
                         for( String dep : dependencies.split(",")) {
                             String suffix = ";resolution:=optional";
                             boolean optional = dep.endsWith(suffix);
@@ -1573,7 +1595,13 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
                             String[] tokens = dep.split(":");
                             String artifactId = tokens[0];
                             String version = tokens[1];
-                            File dependencyJar=resolveDependencyJar(embedder,artifactId,version);
+
+                            for (Jpl other : jpls) {
+                                if (other.shortName.equals(artifactId))
+                                    continue DEPENDENCY;    // resolved from another JPL file
+                            }
+
+                            File dependencyJar=resolveDependencyJar(artifactId,version);
                             if (dependencyJar == null) {
                                 if (optional) {
                                     System.err.println("cannot resolve optional dependency " + dep + " of " + shortName + "; skipping");
@@ -1591,7 +1619,19 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
                 }
             }
 
-            private @CheckForNull File resolveDependencyJar(MavenEmbedder embedder, String artifactId, String version) throws Exception {
+            /**
+             * Lazily created embedder.
+             */
+            private MavenEmbedder embedder;
+
+            private MavenEmbedder getMavenEmbedder() throws MavenEmbedderException, IOException {
+                if (embedder==null)
+                    embedder = MavenUtil.createEmbedder(new StreamTaskListener(System.out, Charset.defaultCharset()),
+                                                    (File) null, null);
+                return embedder;
+            }
+
+            private @CheckForNull File resolveDependencyJar(String artifactId, String version) throws Exception {
                 // try to locate it from manifest
                 Enumeration<URL> manifests = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
                 while (manifests.hasMoreElements()) {
@@ -1627,7 +1667,7 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
                 // need to search multiple group IDs
                 // TODO: extend manifest to include groupID:artifactID:version
                 Exception resolutionError=null;
-                for (String groupId : new String[]{"org.jvnet.hudson.plugins","org.jvnet.hudson.main"}) {
+                for (String groupId : PLUGIN_GROUPIDS) {
 
                     // first try to find it on the classpath.
                     // this takes advantage of Maven POM located in POM
@@ -1639,11 +1679,11 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
 
                     	try {
                     		// currently the most of the plugins are still hpi
-                            return resolvePluginFile(embedder, artifactId, version, groupId, "hpi");
+                            return resolvePluginFile(artifactId, version, groupId, "hpi");
                     	} catch(AbstractArtifactResolutionException x){
                     		try {
                     			// but also try with the new jpi
-                    		    return resolvePluginFile(embedder, artifactId, version, groupId, "jpi");
+                    		    return resolvePluginFile(artifactId, version, groupId, "jpi");
                     		} catch(AbstractArtifactResolutionException x2){
                                 // could be a wrong groupId
                                 resolutionError = x;
@@ -1656,10 +1696,10 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
                 throw new Exception("Failed to resolve plugin: "+artifactId+" version "+version,resolutionError);
             }
             
-            private @CheckForNull File resolvePluginFile(MavenEmbedder embedder, String artifactId, String version, String groupId, String type)
-					throws MavenEmbedderException, ComponentLookupException, AbstractArtifactResolutionException {
-				final Artifact jpi = embedder.createArtifact(groupId, artifactId, version, "compile"/*doesn't matter*/, type);
-				embedder.resolve(jpi, Arrays.asList(embedder.createRepository("http://maven.glassfish.org/content/groups/public/","repo")),embedder.getLocalRepository());
+            private @CheckForNull File resolvePluginFile(String artifactId, String version, String groupId, String type) throws Exception {
+				final Artifact jpi = getMavenEmbedder().createArtifact(groupId, artifactId, version, "compile"/*doesn't matter*/, type);
+                getMavenEmbedder().resolve(jpi,
+                        Arrays.asList(getMavenEmbedder().createRepository("http://maven.glassfish.org/content/groups/public/", "repo")), embedder.getLocalRepository());
 				return jpi.getFile();
 				
 			}
@@ -2197,4 +2237,6 @@ public class JenkinsRule implements TestRule, MethodRule, RootAction {
     public Description getTestDescription() {
         return testDescription;
     }
+
+    public static final List<String> PLUGIN_GROUPIDS = new ArrayList<String>(Arrays.asList("org.jvnet.hudson.plugins", "org.jvnet.hudson.main"));
 }

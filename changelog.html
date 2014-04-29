@@ -55,6 +55,58 @@ Upcoming changes</a>
 <!-- Record your changes in the trunk here. -->
 <div id="trunk" style="display:none"><!--=TRUNK-BEGIN=-->
 <ul class=image>
+  <li class=>
+</ul>
+</div><!--=TRUNK-END=-->
+
+<!-- these changes are controlled by the release process. DO NOT MODIFY -->
+<div id="rc" style="display:none;"><!--=BEGIN=-->
+<h3><a name=v1.562>What's new in 1.562</a> <!--=DATE=--></h3>
+<ul class=image>
+  <li class=bug>
+    Next build link was not reliably available from a previous build after starting a new one.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20662">issue 20662</a>)
+  <li class="bug">
+    Debian postinst: check for present user/group before adding them.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22715">issue 22715</a>)
+  <li class="rfe">
+    Add distance between time tick labels on load statistics.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22686">issue 22686</a>)
+  <li class="bug">
+    Correctly show load statistics for master node.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22689">issue 22689</a>)
+  <li class="rfe">
+    Make load statistics graph font configurable, use sans serif font by default.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22688">issue 22688</a>)
+  <li class="rfe">
+    Add links to nodes on thread dump page for easier navigation.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22672">issue 22672</a>)
+</ul>
+</div><!--=END=-->
+<h3><a name=v1.561>What's new in 1.561</a> (2014/04/27)</h3>
+<ul class=image>
+  <li class=bug>
+    Fixed a corner case handling of tool installation.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-16846">issue 16846</a>)
+  <li class=rfe>
+    Enabled log rotation on the OSX package
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-15178">issue 15178</a>)
+  <li class=bug>
+    When measuring the length of the queue, jobs that consist of multiple subtasks should
+    count as more than 1.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/742">pull request 742</a>)
+  <li class=rfe>
+    Close drop-down button menu when clicking outside
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-17050">issue 17050</a>)
+  <li class=bug>
+    RunParameter with filtering enabled incorrectly includes builds which have not yet completed
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20974">issue 20974</a>)
+  <li class=bug>
+    Fixed NPE if <tt>RunParameterValue</tt> points to a stable build.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20857">issue 20857</a>)
+  <li class=bug>
+    Fixed a JavaScript problem in sortable table with IE8.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21729">issue 21729</a>)
   <li class=bug>
     More efficient deletion of old builds (specified by date).
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22607">issue 22607</a>)
@@ -67,16 +119,50 @@ Upcoming changes</a>
     Better correction of the anomalous condition that several builds of a job specify the same number.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22631">issue 22631</a>)
   <li class=bug>
+    Under certain conditions, a running build could mistakenly be shown as completed (and failed), while still producing output.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22681">issue 22681</a>)
+  <li class=bug>
     Fix a bug which only showed the first detail part for radio buttons.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22583">issue 22583</a>)
   <li class=rfe>
     Update version of bundled Mailer plugin to 1.8 to avoid issues with older versions
+  <li class=rfe>
+    Show larger load statistics graphs.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22674">issue 22674</a>)
+  <li class=rfe>
+    Linebreak project names less aggressively.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22670">issue 22670</a>)
+  <li class=rfe>
+    Added a new extension point for more pluggable JNLP slave handling
+  <li class=bug>
+    Don't ask for confirmation when it doesn't make any sense.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21720">issue 21720</a>)
+  <li class=bug>
+    Jenkins asks for confirmation before leaving form even though user is not authorized to make changes.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20597">issue 20597</a>)
+  <li class=rfe>
+    Make the computers monitor status row look different from regular node rows.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/1095">pull request 1095</a>)
+  <li class=rfe>
+    Do not offer "Install without restart" for plugin updates.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/1125">pull request 1125</a>)
+  <li class=rfe>
+    Require POST on more actions.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/877">pull request 877</a>)
+  <li class=rfe>
+    Optimize image sizes.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/648">pull request 648</a>)
+  <li class=bug>
+    Properly close resources in case of exceptions.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/737">pull request 737</a>)
+  <li class=rfe>
+    Fix warning on JBoss AS7 due to unnecessary xpp3_min dependency.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/733">pull request 733</a>)
+  <li class="rfe">
+    Return queue item location when triggering buildWithParameters.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-13546">issue 13546</a>)
 </ul>
-</div><!--=TRUNK-END=-->
-
-<!-- these changes are controlled by the release process. DO NOT MODIFY -->
-<div id="rc" style="display:none;"><!--=BEGIN=-->
-<h3><a name=v1.560>What's new in 1.560</a> <!--=DATE=--></h3>
+<h3><a name=v1.560>What's new in 1.560</a> (2014/04/20)</h3>
 <ul class=image>
   <li class='major rfe'>
     Enforcing build trigger authentication at runtime by checking authentication associated with a build, rather than at configuration time.
@@ -112,8 +198,10 @@ Upcoming changes</a>
   <li class=bug>
     Job hangs if one of multiple triggered builds was aborted
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21932">issue 21932</a>)
+  <li class=bug>
+    Don't submit form on Apply after Save in new window on some browsers.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20245">issue 20245</a>)
 </ul>
-</div><!--=END=-->
 <h3><a name=v1.559>What's new in 1.559</a> (2014/04/13)</h3>
 <ul class=image>
   <li class=rfe>
@@ -184,8 +272,6 @@ Upcoming changes</a>
   <li class=bug>
     Allow JDK8 (and other versions) to be downloaded by JDKInstaller correctly.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22347">issue 22347</a>)
-  <li class=rfe>
-    Disabled autocomplete function on login page
 </ul>
 <h3><a name=v1.556>What's new in 1.556</a> (2014/03/23)</h3>
 <ul class=image>

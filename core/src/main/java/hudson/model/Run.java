@@ -282,6 +282,7 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
     protected Run(JobT job) throws IOException {
         this(job, new GregorianCalendar());
         this.number = project.assignBuildNumber();
+        LOGGER.log(FINER, "new {0} @{1}", new Object[] {this, hashCode()});
     }
 
     /**
@@ -315,8 +316,15 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
      */
     public void reload() throws IOException {
         this.state = State.COMPLETED;
+        // TODO ABORTED would perhaps make more sense than FAILURE:
         this.result = Result.FAILURE;  // defensive measure. value should be overwritten by unmarshal, but just in case the saved data is inconsistent
         getDataFile().unmarshal(this); // load the rest of the data
+
+        if (state == State.COMPLETED) {
+            LOGGER.log(FINER, "reload {0} @{1}", new Object[] {this, hashCode()});
+        } else {
+            LOGGER.log(WARNING, "reload {0} @{1} with anomalous state {2}", new Object[] {this, hashCode(), state});
+        }
 
         // not calling onLoad upon reload. partly because we don't want to call that from Run constructor,
         // and partly because some existing use of onLoad isn't assuming that it can be invoked multiple times.
@@ -425,14 +433,9 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
         assert state==State.BUILDING : state;
 
         // result can only get worse
-        if(result==null) {
+        if (result==null || r.isWorseThan(result)) {
             result = r;
-            LOGGER.log(FINE, this + " : result is set to " + r, LOGGER.isLoggable(Level.FINER) ? new Exception() : null);
-        } else {
-            if(r.isWorseThan(result)) {
-                LOGGER.log(FINE, this + " : result is set to " + r, LOGGER.isLoggable(Level.FINER) ? new Exception() : null);
-                result = r;
-            }
+            LOGGER.log(FINE, this + " in " + getRootDir() + ": result is set to " + r, LOGGER.isLoggable(Level.FINER) ? new Exception() : null);
         }
     }
 
@@ -1432,9 +1435,11 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
      * @since 1.350
      */
     public synchronized void deleteArtifacts() throws IOException {
-        File artifactsDir = getArtifactsDir();
-
-        Util.deleteContentsRecursive(artifactsDir);
+        try {
+            getArtifactManager().delete();
+        } catch (InterruptedException x) {
+            throw new IOException(x);
+        }
     }
 
     /**
@@ -1446,7 +1451,7 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
     public void delete() throws IOException {
         File rootDir = getRootDir();
         if (!rootDir.isDirectory()) {
-            throw new IOException(this + ": " + rootDir + " looks to have already been deleted");
+            throw new IOException(this + ": " + rootDir + " looks to have already been deleted; siblings: " + Arrays.toString(project.getBuildDir().list()));
         }
         
         RunListener.fireDeleted(this);
@@ -1739,6 +1744,7 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
                 // will now see this build as completed.
                 // things like triggering other builds requires this as pre-condition.
                 // see issue #980.
+                LOGGER.log(FINER, "moving into POST_PRODUCTION on {0}", this);
                 state = State.POST_PRODUCTION;
 
                 if (listener != null) {
@@ -1834,6 +1840,7 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
      * Called when a job started building.
      */
     protected void onStartBuilding() {
+        LOGGER.log(FINER, "moving to BUILDING on {0}", this);
         state = State.BUILDING;
         startTime = System.currentTimeMillis();
         if (runner!=null)
@@ -1845,14 +1852,13 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
      */
     protected void onEndBuilding() {
         // signal that we've finished building.
+        state = State.COMPLETED;
+        LOGGER.log(FINER, "moving to COMPLETED on {0}", this);
         if (runner!=null) {
             // MavenBuilds may be created without their corresponding runners.
-            state = State.COMPLETED;
             runner.checkpoints.allDone();
             runner = null;
             RunnerStack.INSTANCE.pop();
-        } else {
-            state = State.COMPLETED;
         }
         if (result == null) {
             result = Result.FAILURE;
@@ -2073,8 +2079,9 @@ public abstract class Run <JobT extends Job<JobT,RunT>,RunT extends Run<JobT,Run
 			} finally {
 				IOUtils.closeQuietly(input);
 			}
-		}
-        out.close();
+		} finally {
+            IOUtils.closeQuietly(out);
+        }
     }
 
     /**
