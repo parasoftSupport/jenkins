@@ -61,7 +61,29 @@ Upcoming changes</a>
 
 <!-- these changes are controlled by the release process. DO NOT MODIFY -->
 <div id="rc" style="display:none;"><!--=BEGIN=-->
-<h3><a name=v1.562>What's new in 1.562</a> <!--=DATE=--></h3>
+<h3><a name=v1.563>What's new in 1.563</a> <!--=DATE=--></h3>
+<ul class=image>
+  <li class="major bug">
+    Memory exhausion in remoting channel since 1.560.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22734">issue 22734</a>)
+  <li class="rfe">
+    Configurable size for log buffer.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22840">issue 22840</a>)
+  <li class="rfe">
+    Gesture to clear log buffer.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22839">issue 22839</a>)
+  <li class=bug>
+    Prevent up to two-minute delay before scheduling jobs from a cron trigger.
+    (<a href="https://github.com/jenkinsci/jenkins/pull/1216">pull request 1216</a>)
+  <li class="bug">
+    Occasional attempts to delete a build during log rotation which had already been deleted.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22395">issue 22395</a>)
+  <li class="bug">
+    Again show proper display names for build parameters.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22755">issue 22755</a>)
+</ul>
+</div><!--=END=-->
+<h3><a name=v1.562>What's new in 1.562</a> (2014/05/03)</h3>
 <ul class=image>
   <li class=bug>
     Next build link was not reliably available from a previous build after starting a new one.
@@ -82,7 +104,6 @@ Upcoming changes</a>
     Add links to nodes on thread dump page for easier navigation.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-22672">issue 22672</a>)
 </ul>
-</div><!--=END=-->
 <h3><a name=v1.561>What's new in 1.561</a> (2014/04/27)</h3>
 <ul class=image>
   <li class=bug>
@@ -199,8 +220,11 @@ Upcoming changes</a>
     Job hangs if one of multiple triggered builds was aborted
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21932">issue 21932</a>)
   <li class=bug>
-    Don't submit form on Apply after Save in new window on some browsers.
+    Don't submit form on Save after Apply in new window on some browsers.
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-20245">issue 20245</a>)
+  <li class=bug>
+    Remotely triggered builds now show correct IP address through proxy.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-18008">issue 18008</a>)
 </ul>
 <h3><a name=v1.559>What's new in 1.559</a> (2014/04/13)</h3>
 <ul class=image>
@@ -403,6 +427,9 @@ Upcoming changes</a>
   <li class=bug>
     Broken CSS when reloading Jenkins after a time of inactivity
     (<a href="https://issues.jenkins-ci.org/browse/JENKINS-17526">issue 17526</a>)
+  <li class=rfe>
+    Add Batch Command tool installer for Windows nodes.
+    (<a href="https://issues.jenkins-ci.org/browse/JENKINS-21202">issue 21202</a>)
 </ul>
 <h3><a name=v1.548>What's new in 1.548</a> (2014/01/20)</h3>
 <ul class=image>
